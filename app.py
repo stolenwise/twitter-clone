@@ -1,8 +1,10 @@
 import os
 
 from flask import Flask, render_template, request, flash, redirect, session, g
+import pdb
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from forms import UserAddForm, LoginForm, MessageForm
 from models import db, connect_db, User, Message
@@ -14,7 +16,7 @@ app = Flask(__name__)
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    os.environ.get('DATABASE_URL', 'postgresql:///warbler'))
+    os.environ.get('DATABASE_URL', 'postgresql://lewis.stone:R3dr0ver#897@localhost/warbler'))
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
@@ -23,6 +25,12 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
+
+with app.app_context():
+    db.create_all()
+
+
+
 
 
 ##############################################################################
@@ -44,6 +52,11 @@ def do_login(user):
     """Log in user."""
 
     session[CURR_USER_KEY] = user.id
+        
+    return redirect("/")
+
+    
+
 
 
 def do_logout():
@@ -51,6 +64,9 @@ def do_logout():
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
+        flash("You have been logged out.", "success")
+    
+    return redirect("/login")
 
 
 @app.route('/signup', methods=["GET", "POST"])
@@ -112,8 +128,7 @@ def login():
 @app.route('/logout')
 def logout():
     """Handle logout of user."""
-
-    # IMPLEMENT THIS
+    return do_logout()
 
 
 ##############################################################################
@@ -150,6 +165,9 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
+    
+    pdb.set_trace() 
+
     return render_template('users/show.html', user=user, messages=messages)
 
 
@@ -320,3 +338,8 @@ def add_header(req):
     req.headers["Expires"] = "0"
     req.headers['Cache-Control'] = 'public, max-age=0'
     return req
+
+if __name__ == "__main__":
+    with app.app_context():
+        print("Running in app context — DB should be safe now")
+        db.create_all()
