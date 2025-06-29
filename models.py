@@ -101,14 +101,18 @@ class User(db.Model):
         "User",
         secondary="follows",
         primaryjoin=(Follows.user_being_followed_id == id),
-        secondaryjoin=(Follows.user_following_id == id)
+        secondaryjoin=(Follows.user_following_id == id),
+        back_populates="following",
+        overlaps="following"
     )
 
     following = db.relationship(
         "User",
         secondary="follows",
         primaryjoin=(Follows.user_following_id == id),
-        secondaryjoin=(Follows.user_being_followed_id == id)
+        secondaryjoin=(Follows.user_being_followed_id == id),
+        back_populates="followers",
+        overlaps="followers"
     )
 
     likes = db.relationship(
@@ -137,6 +141,8 @@ class User(db.Model):
 
         Hashes password and adds user to system.
         """
+        if not username or not email or not password:
+            raise ValueError("Username, email, and password required.")
 
         hashed_pwd = bcrypt.generate_password_hash(password).decode('UTF-8')
 

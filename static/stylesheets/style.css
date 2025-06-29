@@ -163,11 +163,13 @@ nav + .container {
   border-radius: 100%;
   display: block;
   margin-left: -15px;
+  object-fit: cover;
 }
 
 #profile-image {
   margin: 0 auto 15px;
   width: 100%;
+  object-fit: cover;
 }
 
 #profile-avatar {
@@ -184,6 +186,7 @@ nav + .container {
   border-radius: 48px;
   height: 48px;
   width: 48px;
+  object-fit: cover;
   margin-top: 2px;
 }
 

@@ -2,7 +2,14 @@
 {% block user_details %}
   <div class="col-sm-6">
     
-    <div class="profile-header" style="background-image: url('{{ user.header_image_url }}');">
+    <div class="profile-header" 
+    style="background-image: url('{{ user.header_image_url }}');
+    background-size: cover;
+    background-position: center;
+    height: 200px;
+    position: relative;
+    z-index: 1;"
+    >
 
       <div class="user-info">
         <h2>{{ user.username }}</h2>
@@ -22,7 +29,7 @@
           <a href="/messages/{{ message.id }}" class="message-link"/>
 
           <a href="/users/{{ user.id }}">
-            <img src="{{ user.image_url }}" alt="user image" class="timeline-image">
+            <img src="{{ user.image_url }}" alt="user image" class="timeline-image rounded circle">
           </a>
 
           <div class="message-area">

@@ -193,6 +193,16 @@ def users_followers(user_id):
     return render_template('users/followers.html', user=user)
 
 
+@app.route('/users/<int:user_id>/likes')
+def show_likes(user_id):
+    """Show messages this user has liked."""
+
+    user = User.query.get_or_404(user_id)
+
+    return render_template("users/likes.html", user=user)
+
+
+
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
 def add_follow(follow_id):
     """Add a follow for the currently-logged-in user."""
@@ -298,6 +308,30 @@ def messages_show(message_id):
     return render_template('messages/show.html', message=msg)
 
 
+@app.route('/message/<int:message_id>/like', methods=["POST"])    
+def toggle_like(message_id):
+    """Toggle like on a message."""
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    message = Message.query.get_or_404(message_id)
+
+    # Users cannot like their own messages
+    if message.user_id == g.user.id:
+        flash("You cannot like your own warble.", "danger")
+        return redirect(f"/users/{g.user.id}")
+    
+    # Toggle like
+    if message in g.user.likes:
+        g.user.likes.remove(message)
+    else:
+        g.user.likes.append(message)
+
+    db.session.commit()
+    return redirect(request.referrer or "/")
+
+
 @app.route('/messages/<int:message_id>/delete', methods=["POST"])
 def messages_destroy(message_id):
     """Delete a message."""
@@ -326,13 +360,16 @@ def homepage():
     """
 
     if g.user:
+        following_ids = [user.id for user in g.user.following] + [g.user.id]
+        likes = [msg.id for msg in g.user.likes] if g.user else []
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(following_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', messages=messages, likes=likes)
 
     else:
         return render_template('home-anon.html')
